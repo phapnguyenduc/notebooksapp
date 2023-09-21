@@ -1,0 +1,43 @@
+.btn-back {
+    margin: 10px 0;
+}
+
+.btn-save {
+    margin: 10px 10px 0;
+}
+
+.row-btn {
+    height: 50px;
+}
+
+.space-select {
+    width: 100%;
+    margin: 10px 0
+}
+
+.textarea-style {
+    height: calc(100vh - 204px) !important;
+    /* background-image: repeating-linear-gradient(white 0px, white 24px, teal 25px); */
+    background: linear-gradient(to bottom, white 21px, #00b0d7 1px);
+    background-size: 100% 22px;
+}
+
+.header-style {
+    text-align: center;
+    color: #fff;
+    height: 64px;
+    padding-inline: 50px;
+    line-height: 64px;
+    background-color: #7dbcea
+}
+
+.content-style {
+    height: calc(100vh - 108px);
+}
+
+.footer-style {
+    border-top: 1px solid #e8e8e8;
+    background-color: white;
+    text-align: center;
+    height: 64px
+}
