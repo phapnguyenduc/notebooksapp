@@ -7,7 +7,7 @@
 }
 
 .row-btn {
-    height: 50px;
+    height: 70px;
 }
 
 .space-select {
@@ -16,7 +16,7 @@
 }
 
 .textarea-style {
-    height: calc(100vh - 204px) !important;
+    height: calc(100vh - 224px) !important;
     /* background-image: repeating-linear-gradient(white 0px, white 24px, teal 25px); */
     background: linear-gradient(to bottom, white 21px, #00b0d7 1px);
     background-size: 100% 22px;
@@ -40,4 +40,12 @@
     background-color: white;
     text-align: center;
     height: 64px
+}
+
+.btn-add {
+    margin: 10px 0
+}
+
+.btn-delete {
+    width: 30px
 }
