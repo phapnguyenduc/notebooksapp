@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { Layout, Space } from 'antd';
+import React from 'react';
+import { Layout } from 'antd';
 import { Outlet } from "react-router-dom";
 
 const { Header, Footer, Content } = Layout;

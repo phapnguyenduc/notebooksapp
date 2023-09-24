@@ -1,11 +1,12 @@
 import TextArea from "antd/es/input/TextArea";
 import { Button, Row, Col, Select, Space, Form } from 'antd';
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from '../axios-config';
 
 const CreateNote = () => {
     const navigate = useNavigate();
+    const inputRef = useRef(null);
     const [noteDataForm] = Form.useForm();
     const { state } = useLocation();
     const [content, setContent] = useState("");
@@ -13,6 +14,9 @@ const CreateNote = () => {
     const [tagSelect, setTagSelect] = useState([]);
 
     useEffect(() => {
+        inputRef.current.focus({
+            cursor: 'start',
+        });
         noteDataForm.setFieldsValue({
             content: state?.content,
             tags: state?.tags?.map((tag) => {
@@ -38,9 +42,11 @@ const CreateNote = () => {
     const onSubmitForm = (e) => {
         const data = {
             content: e.content,
-            tags: tagSelect
+            tags: tagSelect,
+            id: state?.id
         };
-        axios.post('/note/save', data)
+
+        axios.post('/note/save/', data)
             .then(res => {
                 setContent("");
                 navigate('/');
@@ -63,11 +69,11 @@ const CreateNote = () => {
                 onFinish={onSubmitForm}
             >
                 <Row className="row-btn">
-                    <Col xs={{ span: 24 }} lg={{ span: 15 }}>
-                        <Button className='mt-2 btn-back' href='/' >Back</Button>
+                    <Col xs={{ span: 10 }} lg={{ span: 15 }}>
+                        <Button className='mt-2 btn-back' onClick={() => { return navigate('/') }} >Back</Button>
                         <Button className='mt-2 btn-save' htmlType="submit" type="primary" >Save</Button>
                     </Col>
-                    <Col xs={{ span: 24 }} lg={{ span: 9 }}>
+                    <Col xs={{ span: 14 }} lg={{ span: 9 }}>
                         <Space
                             className="space-select"
                             direction="vertical"
@@ -85,11 +91,15 @@ const CreateNote = () => {
                         </Space>
                     </Col>
                 </Row>
-                <Form.Item name="content">
-                    <TextArea className="textarea-style" value={content} onChange={e => {
-                        setContent(e.target.value)
-                    }} ></TextArea>
-                </Form.Item>
+                <Row>
+                    <Col span={24}>
+                        <Form.Item name="content">
+                            <TextArea ref={inputRef} className="textarea-style" value={content} onChange={e => {
+                                setContent(e.target.value)
+                            }} ></TextArea>
+                        </Form.Item>
+                    </Col>
+                </Row>
             </Form>
         </>
     )
