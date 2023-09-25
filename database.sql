@@ -3,3 +3,5 @@ CREATE TABLE notebooks.note (id INT AUTO_INCREMENT PRIMARY KEY, content LONGTEXT
 CREATE TABLE notebooks.tag (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
 CREATE TABLE notebooks.note_tag (note_id INT ,tag_id INT , PRIMARY KEY (note_id, tag_id), FOREIGN KEY (note_id) REFERENCES note (id) ON DELETE CASCADE, FOREIGN KEY (tag_id) REFERENCES tag (id) ON DELETE CASCADE);
 INSERT INTO notebooks.tag (name) VALUES ('Work'), ('Personal Information'), ('School'),  ('Inportant Information'), ('Others');
+CREATE TABLE notebooks.user (id INT AUTO_INCREMENT PRIMARY KEY, token VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
+CREATE TABLE notebooks.user_note (user_id INT ,note_id INT , PRIMARY KEY (user_id, note_id), FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE, FOREIGN KEY (note_id) REFERENCES note (id) ON DELETE CASCADE);

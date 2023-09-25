@@ -17,6 +17,12 @@ const CreateNote = () => {
         inputRef.current.focus({
             cursor: 'start',
         });
+
+        if (!state === false) {
+            setContent(state?.content);
+            setTagSelect(state?.tags ? state?.tags : []);
+        }
+
         noteDataForm.setFieldsValue({
             content: state?.content,
             tags: state?.tags?.map((tag) => {
@@ -26,6 +32,8 @@ const CreateNote = () => {
                 }
             })
         });
+
+
         axios.get('/tags')
             .then(res => {
                 const dataConverted = res.data.map((object) => {
@@ -48,8 +56,7 @@ const CreateNote = () => {
 
         axios.post('/note/save/', data)
             .then(res => {
-                setContent("");
-                navigate('/');
+                window.location.replace('/');
             });
     };
 

@@ -1,12 +1,16 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 const mysql = require('../db_connection');
-
 const router = express.Router();
+const verifyToken = require('../middlewares/verifyToken');
+
+dotenv.config();
 
 router.post("/note/save/", async (req, res) => {
     try {
         // Create new note
-        if (req.body.content !== undefined && !Number.isInteger(req.body.id)) {
+        if (!req.body.content === false && !Number.isInteger(req.body.id)) {
             var sql = "INSERT INTO note (content) VALUES ?";
             var values = [
                 [req.body.content]
@@ -14,17 +18,25 @@ router.post("/note/save/", async (req, res) => {
             mysql.query(sql, [values], function (err, result) {
                 if (err) throw err;
 
+                var insertNoteTagSql = "INSERT INTO note_tag (note_id, tag_id) VALUES ?";
+                var insertUserNoteSql = "INSERT INTO user_note (user_id, note_id) VALUES ?";
+
                 if (req.body.tags.length !== 0) {
                     // Insert data for note_tag table
                     const dataInsert = req.body.tags.map((ob) => {
                         return [result.insertId, ob]
                     });
-                    mysql.query("INSERT INTO note_tag (note_id, tag_id) VALUES ?", [dataInsert], function (err, result) {
+                    mysql.query(insertNoteTagSql, [dataInsert], function (err, result) {
                         if (err) throw err;
                     })
                 }
+                console.log(req.header('auth-token'));
+                mysql.query(insertUserNoteSql, [[req.header('auth-token').id, result.insertId]], function (err, result) {
+                    if (err) throw err;
+                })
             });
-        } else {
+        }
+        if (Number.isInteger(req.body.id)) {
             // Update note
             var sql = 'UPDATE note SET content=? WHERE id=?; ' +
                 'SELECT tag_id FROM note_tag WHERE note_id=?';
@@ -60,7 +72,7 @@ router.post("/note/save/", async (req, res) => {
                 }
             });
         }
-        res.send("Save notes sucessfully");
+        res.send("Save notes successfully");
     } catch (error) {
         res.send(error.message);
     }
@@ -68,15 +80,15 @@ router.post("/note/save/", async (req, res) => {
 
 router.get("/notes/:page", async (req, res) => {
     try {
-        var perpage = 15;
-        var nexPage = (req.params.page - 1) * perpage;
+        var perPage = 15;
+        var nexPage = (req.params.page - 1) * perPage;
         var sql = "SELECT * FROM note as n ORDER BY n.updated_at DESC LIMIT ?,?"
 
-        mysql.query(sql, [nexPage, perpage], function (err, result) {
+        mysql.query(sql, [nexPage, perPage], function (err, result) {
             if (err) throw err;
 
             var sqlNoteTag = "SELECT nt.note_id as id, nt.tag_id, t.name as tag_name FROM note_tag as nt LEFT JOIN " +
-                "tag as t on nt.tag_id = t.id;";
+                "tag as t on nt.tag_id = t.id";
 
             mysql.query(sqlNoteTag, function (err, noteTagResult) {
                 var dataMerge = [];
@@ -132,12 +144,29 @@ router.get("/tags", async (req, res) => {
     }
 });
 
-router.delete("/note/delete/:id", async (req, res) => {
+router.delete("/note/delete/:id", verifyToken, async (req, res) => {
     try {
         var sql = "DELETE FROM note as n WHERE n.id=? ";
         mysql.query(sql, [req.params.id], function (err, result) {
             if (err) throw err;
             res.send(result);
+        });
+    } catch (error) {
+        res.send(error.message);
+    }
+});
+
+router.post("/user/add", async (req, res) => {
+    try {
+        var sql = "INSERT INTO user (token) VALUES ?";
+        const token = jwt.sign({ user_name: req.body.username }, process.env.TOKEN_SECRET, {});
+        var values = [
+            [token]
+        ];
+        mysql.query(sql, [values], function (err, result) {
+            if (err) throw err;
+
+            res.send({ id: result.insertId, token: token });
         });
     } catch (error) {
         res.send(error.message);

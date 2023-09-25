@@ -10,6 +10,8 @@ let endpoints = [
     '/notes/'
 ];
 
+const NOTE_SAVE_URL = "/note/save";
+
 const ListNotes = () => {
     const navigate = useNavigate();
 
@@ -28,14 +30,14 @@ const ListNotes = () => {
     }
 
     const onRowNote = (data) => {
-        navigate("/create", { state: data })
+        navigate(NOTE_SAVE_URL, { state: data })
     }
 
     const fetchMoreData = () => {
         setPageNum(pageNum + 1);
         setTimeout(() => {
             Promise.all(endpoints.map((url) => axios.get(url + (pageNum + 1)))).then(function (dataAll) {
-                if(dataAll[0].data.length === 0){
+                if (dataAll[0].data.length === 0) {
                     setHasMore(false);
                 }
                 setNoteData(noteData.concat(dataAll[0].data));
@@ -51,12 +53,13 @@ const ListNotes = () => {
         loadNoteData();
     }, []);
 
+
     return (
         <>
             <Row>
                 <Col span={24}>
                     <Button className='btn-add mt-2' type="primary" icon={<PlusCircleOutlined />}
-                        onClick={() => { return navigate('/create') }}>
+                        onClick={() => { return navigate(NOTE_SAVE_URL) }}>
                         Add
                     </Button>
                 </Col>
@@ -71,7 +74,7 @@ const ListNotes = () => {
                         loader={<p className='loader-scroll'>{noteData.length === 0 ? 'No data' : 'Loading...'}</p>}
                         endMessage={<p className='loader-scroll'>You have seen it all</p>}
                     >
-                        {noteData.map((note, index) => {
+                        {noteData?.map((note, index) => {
                             return (
                                 <>
                                     <Row onClick={(e) => {
@@ -84,7 +87,7 @@ const ListNotes = () => {
                                         </Col>
                                         <Col className='col-note content-tag' span={20}>
                                             <Row className='col-note content'>
-                                                {note.content.length > 100 ? note.content.substr(0, 100) + '...' : note.content}
+                                                {note.content?.length > 100 ? note.content.substr(0, 100) + '...' : note.content}
                                             </Row>
                                             <Row className='col-note tag'>
                                                 {
