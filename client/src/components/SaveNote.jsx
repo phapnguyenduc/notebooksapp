@@ -51,13 +51,15 @@ const CreateNote = () => {
         const data = {
             content: e.content,
             tags: tagSelect,
-            id: state?.id
+            id: state?.id,
+            user_id: localStorage.getItem('id')
         };
 
         axios.post('/note/save/', data)
             .then(res => {
-                window.location.replace('/');
-            });
+                window.location.replace('/notes');
+            })
+            .catch(error => console.log(error));;
     };
 
     const handleChange = (value) => {
@@ -77,7 +79,7 @@ const CreateNote = () => {
             >
                 <Row className="row-btn">
                     <Col xs={{ span: 10 }} lg={{ span: 15 }}>
-                        <Button className='mt-2 btn-back' onClick={() => { return navigate('/') }} >Back</Button>
+                        <Button className='mt-2 btn-back' onClick={() => { return navigate('/notes') }} >Back</Button>
                         <Button className='mt-2 btn-save' htmlType="submit" type="primary" >Save</Button>
                     </Col>
                     <Col xs={{ span: 14 }} lg={{ span: 9 }}>

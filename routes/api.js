@@ -3,9 +3,12 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const mysql = require('../db_connection');
 const router = express.Router();
+const app = express();
 const verifyToken = require('../middlewares/verifyToken');
 
 dotenv.config();
+
+router.use(verifyToken);
 
 router.post("/note/save/", async (req, res) => {
     try {
@@ -30,8 +33,8 @@ router.post("/note/save/", async (req, res) => {
                         if (err) throw err;
                     })
                 }
-                console.log(req.header('auth-token'));
-                mysql.query(insertUserNoteSql, [[req.header('auth-token').id, result.insertId]], function (err, result) {
+
+                mysql.query(insertUserNoteSql, [[[parseInt(req.body.user_id), result.insertId]]], function (err, result) {
                     if (err) throw err;
                 })
             });
@@ -82,9 +85,11 @@ router.get("/notes/:page", async (req, res) => {
     try {
         var perPage = 15;
         var nexPage = (req.params.page - 1) * perPage;
-        var sql = "SELECT * FROM note as n ORDER BY n.updated_at DESC LIMIT ?,?"
+        var sql = "SELECT * FROM note as n LEFT JOIN user_note as un ON n.id = un.note_id " +
+            "WHERE un.user_id = (SELECT u.id FROM user as u WHERE u.token=?)" +
+            " ORDER BY n.updated_at DESC LIMIT ?,?"
 
-        mysql.query(sql, [nexPage, perPage], function (err, result) {
+        mysql.query(sql, [req.header('auth-token'), nexPage, perPage], function (err, result) {
             if (err) throw err;
 
             var sqlNoteTag = "SELECT nt.note_id as id, nt.tag_id, t.name as tag_name FROM note_tag as nt LEFT JOIN " +
@@ -144,7 +149,7 @@ router.get("/tags", async (req, res) => {
     }
 });
 
-router.delete("/note/delete/:id", verifyToken, async (req, res) => {
+router.delete("/note/delete/:id", async (req, res) => {
     try {
         var sql = "DELETE FROM note as n WHERE n.id=? ";
         mysql.query(sql, [req.params.id], function (err, result) {
@@ -159,7 +164,7 @@ router.delete("/note/delete/:id", verifyToken, async (req, res) => {
 router.post("/user/add", async (req, res) => {
     try {
         var sql = "INSERT INTO user (token) VALUES ?";
-        const token = jwt.sign({ user_name: req.body.username }, process.env.TOKEN_SECRET, {});
+        const token = jwt.sign({ user_name: req.body.username }, process.env.TOKEN_SECRET, { expiresIn: '365d' });
         var values = [
             [token]
         ];

@@ -1,89 +1,62 @@
 import React from 'react';
 import axios from '../axios-config';
-import { Button, Checkbox, Form, Input } from 'antd';
+import { useNavigate } from "react-router-dom";
+import { Button, Col, Form, Input, Row } from 'antd';
 
-const onFinish = (values) => {
-    axios.post('/user/add', values)
-        .then(res => {
-            if (!localStorage.getItem("token")) {
-                localStorage.setItem("token", res.data.token);
-                localStorage.setItem("id", res.data.id);
-            }
+const LIST_OF_NOTES_URL = "/notes";
 
-            console.log(res);
-            // window.location.replace('/');
-        });
-};
 const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
 };
 
-const Home = () => (
-    <Form
-        name="basic"
-        labelCol={{
-            span: 8,
-        }}
-        wrapperCol={{
-            span: 16,
-        }}
-        style={{
-            maxWidth: 600,
-        }}
-        initialValues={{
-            remember: true,
-        }}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-        autoComplete="off"
-    >
-        <Form.Item
-            label="Username"
-            name="username"
-            rules={[
-                {
-                    required: true,
-                    message: 'Please input your username!',
-                },
-            ]}
-        >
-            <Input />
-        </Form.Item>
+const Home = () => {
+    const navigate = useNavigate();
 
-        <Form.Item
-            label="Password"
-            name="password"
-            rules={[
-                {
-                    required: true,
-                    message: 'Please input your password!',
-                },
-            ]}
-        >
-            <Input.Password />
-        </Form.Item>
+    const onFinish = (values) => {
+        if (!localStorage.getItem("token")) {
+            axios.post('/user/add', values)
+                .then(res => {
+                    localStorage.setItem("token", res.data.token);
+                    localStorage.setItem("id", res.data.id);
+                    localStorage.setItem("username", values.username);
+                    navigate(LIST_OF_NOTES_URL);
+                });
+        }
+        navigate(LIST_OF_NOTES_URL);
+    };
+    
+    return (
+        <>
+            <Form
+                onFinish={onFinish}
+                onFinishFailed={onFinishFailed}
+                autoComplete="off"
+            >
+                <Row className='username-note'>
+                    <Col span={24}>
+                        <Form.Item
+                            name="username"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please input your username!',
+                                },
+                            ]}
+                        >
+                            <Input placeholder='Your name' />
+                        </Form.Item>
+                    </Col>
+                    <Col span={24}>
+                        <Form.Item className='form-continue-btn'>
+                            <Button className='continue-btn' type="primary" htmlType="submit">
+                                Continue
+                            </Button>
+                        </Form.Item>
+                    </Col>
+                </Row>
 
-        <Form.Item
-            name="remember"
-            valuePropName="checked"
-            wrapperCol={{
-                offset: 8,
-                span: 16,
-            }}
-        >
-            <Checkbox>Remember me</Checkbox>
-        </Form.Item>
-
-        <Form.Item
-            wrapperCol={{
-                offset: 8,
-                span: 16,
-            }}
-        >
-            <Button type="primary" htmlType="submit">
-                Submit
-            </Button>
-        </Form.Item>
-    </Form>
-);
+            </Form>
+        </>
+    )
+};
 export default Home;

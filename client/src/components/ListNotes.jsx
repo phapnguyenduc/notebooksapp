@@ -36,19 +36,26 @@ const ListNotes = () => {
     const fetchMoreData = () => {
         setPageNum(pageNum + 1);
         setTimeout(() => {
-            Promise.all(endpoints.map((url) => axios.get(url + (pageNum + 1)))).then(function (dataAll) {
-                if (dataAll[0].data.length === 0) {
-                    setHasMore(false);
-                }
-                setNoteData(noteData.concat(dataAll[0].data));
-            });
+            Promise.all(endpoints?.map((url) => axios.get(url + (pageNum + 1))))
+                .then((response) => {
+                    if (response[0].data.length === 0) {
+                        setHasMore(false);
+                    }
+                    setNoteData(noteData.concat(response[0].data));
+                }).catch(error => {
+                    console.error('There was an error!', error);
+                });
         }, 500);
     }
 
     useEffect(() => {
         const loadNoteData = async () => {
-            const dataAll = await Promise.all(endpoints.map((url) => axios.get(url + pageNum)));
-            setNoteData(dataAll[0].data);
+            await Promise.all(endpoints?.map((url) => axios.get(url + pageNum)))
+                .then(response => {
+                    setNoteData(response[0].data);
+                }).catch(error => {
+                    console.error('There was an error!', error);
+                });
         }
         loadNoteData();
     }, []);
@@ -56,6 +63,9 @@ const ListNotes = () => {
 
     return (
         <>
+            <Row>
+                <p>Hi, {localStorage.getItem('username')}</p>
+            </Row>
             <Row>
                 <Col span={24}>
                     <Button className='btn-add mt-2' type="primary" icon={<PlusCircleOutlined />}

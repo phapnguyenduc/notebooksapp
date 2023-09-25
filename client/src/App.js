@@ -6,6 +6,7 @@ import LayoutPage from './components/LayoutPage';
 import ListNotes from './components/ListNotes';
 import SaveNote from './components/SaveNote';
 import Home from './components/Home';
+import PrivateRoute from './auth/PrivateRoute';
 
 class App extends Component {
 
@@ -14,10 +15,12 @@ class App extends Component {
       <>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LayoutPage />}>
-              <Route index element={<Home />} />
+            <Route path="/" element={<PrivateRoute />}>
               <Route path="/note/save" element={<SaveNote />} />
               <Route path="/notes" element={<ListNotes />} />
+            </Route>
+            <Route path="/" element={<LayoutPage />}>
+              <Route index element={<Home />} />
             </Route>
           </Routes>
         </BrowserRouter>
