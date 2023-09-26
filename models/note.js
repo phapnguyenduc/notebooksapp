@@ -68,29 +68,28 @@ function paginate(req, res) {
 
 function saveNote(req, res) {
     try {
-        User.getUserId(req.header('x_authorization')).then((userId) => {
-            // Create new note
-            if (!req.body.content === false && !Number.isInteger(req.body.id)) {
-                var sql = "INSERT INTO note (content) VALUES ?";
-                var values = [
-                    [req.body.content]
-                ];
-                mysql.query(sql, [values], function (err, result) {
-                    if (err) throw err;
+        // Create new note
+        if (!req.body.content === false && !Number.isInteger(req.body.id)) {
+            var sql = "INSERT INTO note (content) VALUES ?";
+            var values = [
+                [req.body.content]
+            ];
+            mysql.query(sql, [values], function (err, result) {
+                if (err) throw err;
 
-                    var insertNoteTagSql = "INSERT INTO note_tag (note_id, tag_id) VALUES ?";
-                    var insertUserNoteSql = "INSERT INTO user_note (user_id, note_id) VALUES ?";
+                var insertNoteTagSql = "INSERT INTO note_tag (note_id, tag_id) VALUES ?";
+                var insertUserNoteSql = "INSERT INTO user_note (user_id, note_id) VALUES ?";
 
-                    if (req.body.tags.length !== 0) {
-                        // Insert data for note_tag table
-                        const dataNoteTag = req.body.tags.map((ob) => {
-                            return [result.insertId, ob]
-                        });
-                        mysql.query(insertNoteTagSql, [dataNoteTag], function (err, result) {
-                            if (err) throw err;
-                        })
-                    }
-
+                if (req.body.tags.length !== 0) {
+                    // Insert data for note_tag table
+                    const dataNoteTag = req.body.tags.map((ob) => {
+                        return [result.insertId, ob]
+                    });
+                    mysql.query(insertNoteTagSql, [dataNoteTag], function (err, result) {
+                        if (err) throw err;
+                    })
+                }
+                User.getUserId(req.header('x_authorization')).then((userId) => {
                     const dataUserNote = [
                         [userId, result.insertId]
                     ];
@@ -99,8 +98,8 @@ function saveNote(req, res) {
                         if (err) throw err;
                     })
                 });
-            }
-        });
+            });
+        }
         if (Number.isInteger(req.body.id)) {
             // Update note
             var sql = 'UPDATE note SET content=? WHERE id=?; ' +
