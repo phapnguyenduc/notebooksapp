@@ -20,7 +20,7 @@ function getUsers() {
 
 function createUser(req, res) {
     try {
-        console.log('in');
+        console.log(req.body.username);
         const accessTokenLife =
             process.env.ACCESS_TOKEN_LIFE || jwtVariable.accessTokenLife;
         const accessTokenSecret =
@@ -29,21 +29,22 @@ function createUser(req, res) {
             username: req.body.username,
         };
 
-        const accessToken = authMethod.generateToken(
+        authMethod.generateToken(
             dataForAccessToken,
             accessTokenSecret,
             '',
-        );
-        
-        var sql = "INSERT INTO user (username, token) VALUES ?";
-        var values = [
-            [req.body.username, accessToken]
-        ];
-        mysql.query(sql, [values], function (err, result) {
-            if (err) throw err;
+        ).then((accessToken) => {
+            var sql = "INSERT INTO user (username, token) VALUES ?";
+            var values = [
+                [req.body.username, accessToken]
+            ];
+            mysql.query(sql, [values], function (err, result) {
+                if (err) throw err;
 
-            res.send({ token: accessToken });
+                res.send({ token: accessToken });
+            });
         });
+
     } catch (error) {
         res.send(error.message);
     }
@@ -66,15 +67,24 @@ function updateUser() {
 }
 
 function getUserId(token) {
-    // try {
-    //     var sql = "SELECT u.id FROM user as u WHERE u.token=?";
-    //     var values = [
-    //         [token]
-    //     ];
-    //     console.log(token);
-    // } catch (error) {
-    //     console.log(error.message);
-    // }
+    try {
+        var sql = "SELECT u.id FROM user as u WHERE u.token=?";
+        var values = [
+            [token]
+        ];
+
+        return new Promise((resolve, reject) => {
+            mysql.query(sql, [values], function (err, result) {
+                if (err) reject(new Error(err.message));
+
+                resolve(result[0].id);
+            });
+        });
+
+
+    } catch (error) {
+        console.log(error.message);
+    }
 }
 
 module.exports = {

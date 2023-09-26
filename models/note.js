@@ -68,76 +68,76 @@ function paginate(req, res) {
 
 function saveNote(req, res) {
     try {
-        // const userId = User.getUserId(req.header('x_authorization'));
-        // console.log(userId).then((e) => console.log(e));
-        // Create new note
-        // if (!req.body.content === false && !Number.isInteger(req.body.id)) {
-        //     var sql = "INSERT INTO note (content) VALUES ?";
-        //     var values = [
-        //         [req.body.content]
-        //     ];
-        //     mysql.query(sql, [values], function (err, result) {
-        //         if (err) throw err;
+        User.getUserId(req.header('x_authorization')).then((userId) => {
+            // Create new note
+            if (!req.body.content === false && !Number.isInteger(req.body.id)) {
+                var sql = "INSERT INTO note (content) VALUES ?";
+                var values = [
+                    [req.body.content]
+                ];
+                mysql.query(sql, [values], function (err, result) {
+                    if (err) throw err;
 
-        //         var insertNoteTagSql = "INSERT INTO note_tag (note_id, tag_id) VALUES ?";
-        //         var insertUserNoteSql = "INSERT INTO user_note (user_id, note_id) VALUES ?";
+                    var insertNoteTagSql = "INSERT INTO note_tag (note_id, tag_id) VALUES ?";
+                    var insertUserNoteSql = "INSERT INTO user_note (user_id, note_id) VALUES ?";
 
-        //         if (req.body.tags.length !== 0) {
-        //             // Insert data for note_tag table
-        //             const dataNoteTag = req.body.tags.map((ob) => {
-        //                 return [result.insertId, ob]
-        //             });
-        //             mysql.query(insertNoteTagSql, [dataNoteTag], function (err, result) {
-        //                 if (err) throw err;
-        //             })
-        //         }
+                    if (req.body.tags.length !== 0) {
+                        // Insert data for note_tag table
+                        const dataNoteTag = req.body.tags.map((ob) => {
+                            return [result.insertId, ob]
+                        });
+                        mysql.query(insertNoteTagSql, [dataNoteTag], function (err, result) {
+                            if (err) throw err;
+                        })
+                    }
 
-        //         const dataUserNote = [
-        //             [userId, result.insertId]
-        //         ];
+                    const dataUserNote = [
+                        [userId, result.insertId]
+                    ];
 
-        //         mysql.query(insertUserNoteSql, [dataUserNote], function (err, result) {
-        //             if (err) throw err;
-        //         })
-        //     });
-        // }
-        // if (Number.isInteger(req.body.id)) {
-        //     // Update note
-        //     var sql = 'UPDATE note SET content=? WHERE id=?; ' +
-        //         'SELECT tag_id FROM note_tag WHERE note_id=?';
-        //     mysql.query(sql, [req.body.content, req.body.id, req.body.id], function (err, results) {
-        //         if (err) throw err;
+                    mysql.query(insertUserNoteSql, [dataUserNote], function (err, result) {
+                        if (err) throw err;
+                    })
+                });
+            }
+        });
+        if (Number.isInteger(req.body.id)) {
+            // Update note
+            var sql = 'UPDATE note SET content=? WHERE id=?; ' +
+                'SELECT tag_id FROM note_tag WHERE note_id=?';
+            mysql.query(sql, [req.body.content, req.body.id, req.body.id], function (err, results) {
+                if (err) throw err;
 
-        //         if (req.body.tags.length !== 0) {
-        //             var tagAdded = results[1].map((tag) => { return tag.tag_id });
-        //             var tagReq = req.body.tags;
-        //             var updateTag = {
-        //                 sql: '',
-        //                 tags: []
-        //             };
-        //             if (tagReq.length > tagAdded.length) {
-        //                 //update, add more tag
-        //                 var tags = tagReq.filter(o => { return !tagAdded.includes(o) });
-        //                 updateTag.sql = 'INSERT INTO note_tag (note_id, tag_id) VALUES ?';
-        //                 updateTag.tags = tags.map((ob) => {
-        //                     return [req.body.id, ob]
-        //                 });
+                if (req.body.tags.length !== 0) {
+                    var tagAdded = results[1].map((tag) => { return tag.tag_id });
+                    var tagReq = req.body.tags;
+                    var updateTag = {
+                        sql: '',
+                        tags: []
+                    };
+                    if (tagReq.length > tagAdded.length) {
+                        //update, add more tag
+                        var tags = tagReq.filter(o => { return !tagAdded.includes(o) });
+                        updateTag.sql = 'INSERT INTO note_tag (note_id, tag_id) VALUES ?';
+                        updateTag.tags = tags.map((ob) => {
+                            return [req.body.id, ob]
+                        });
 
-        //             } else {
-        //                 //update, remove tag
-        //                 var tags = tagAdded.filter(o => { return !tagReq.includes(o) });
-        //                 updateTag.sql = 'DELETE FROM note_tag WHERE (note_id, tag_id) IN (?)';
-        //                 updateTag.tags = tags.map((ob) => {
-        //                     return [req.body.id, ob]
-        //                 });
-        //             }
-        //             mysql.query(updateTag.sql, [updateTag.tags], function (err, result) {
-        //                 if (err) throw err;
-        //             })
-        //         }
-        //     });
-        // }
-        // res.send("Save notes successfully");
+                    } else {
+                        //update, remove tag
+                        var tags = tagAdded.filter(o => { return !tagReq.includes(o) });
+                        updateTag.sql = 'DELETE FROM note_tag WHERE (note_id, tag_id) IN (?)';
+                        updateTag.tags = tags.map((ob) => {
+                            return [req.body.id, ob]
+                        });
+                    }
+                    mysql.query(updateTag.sql, [updateTag.tags], function (err, result) {
+                        if (err) throw err;
+                    })
+                }
+            });
+        }
+        res.send("Save notes successfully");
     } catch (error) {
         res.send(error.message);
     }
