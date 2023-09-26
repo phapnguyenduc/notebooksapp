@@ -1,30 +1,39 @@
-import React from 'react';
-import axios from '../axios-config';
+import React, { useEffect } from 'react';
+import axios from '../config/axios-config';
 import { useNavigate } from "react-router-dom";
 import { Button, Col, Form, Input, Row } from 'antd';
-
-const LIST_OF_NOTES_URL = "/notes";
+import routeConfig from '../config/route-config';
+import apiUrlConfig from '../config/api-url-config';
 
 const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
 };
 
 const Home = () => {
+
     const navigate = useNavigate();
 
     const onFinish = (values) => {
         if (!localStorage.getItem("token")) {
-            axios.post('/user/add', values)
+            axios.post(apiUrlConfig('user-add'), values)
                 .then(res => {
                     localStorage.setItem("token", res.data.token);
-                    localStorage.setItem("id", res.data.id);
                     localStorage.setItem("username", values.username);
-                    navigate(LIST_OF_NOTES_URL);
-                });
+                    navigate(routeConfig('notes'));
+                })
+                .catch(error => console.log(error));
         }
-        navigate(LIST_OF_NOTES_URL);
+        navigate(routeConfig('notes'));
     };
-    
+
+    useEffect(() => {
+        let auth = { 'token': localStorage.getItem('token') !== null };
+
+        if (auth.token) {
+            navigate(routeConfig('notes'));
+        }
+    }, []);
+
     return (
         <>
             <Form

@@ -2,7 +2,9 @@ import TextArea from "antd/es/input/TextArea";
 import { Button, Row, Col, Select, Space, Form } from 'antd';
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from '../axios-config';
+import axios from '../config/axios-config';
+import routeConfig from '../config/route-config';
+import apiUrlConfig from '../config/api-url-config';
 
 const CreateNote = () => {
     const navigate = useNavigate();
@@ -34,8 +36,12 @@ const CreateNote = () => {
         });
 
 
-        axios.get('/tags')
-            .then(res => {
+        axios.get(apiUrlConfig('private-tags'),
+            {
+                headers: {
+                    'x_authorization': localStorage.getItem("token")
+                }
+            }).then(res => {
                 const dataConverted = res.data.map((object) => {
                     return {
                         label: "#" + object.name,
@@ -43,8 +49,8 @@ const CreateNote = () => {
                     }
                 });
                 setTagData(dataConverted);
-            })
-            .catch(error => console.log(error));
+                
+            }).catch(error => console.log(error));
     }, []);
 
     const onSubmitForm = (e) => {
@@ -55,11 +61,15 @@ const CreateNote = () => {
             user_id: localStorage.getItem('id')
         };
 
-        axios.post('/note/save/', data)
-            .then(res => {
-                window.location.replace('/notes');
+        axios.post(apiUrlConfig('private-note-save'), data,
+            {
+                headers: {
+                    'x_authorization': localStorage.getItem("token")
+                }
+            }).then(res => {
+                window.location.replace(routeConfig('notes'));
             })
-            .catch(error => console.log(error));;
+            .catch(error => console.log(error));
     };
 
     const handleChange = (value) => {
@@ -79,7 +89,7 @@ const CreateNote = () => {
             >
                 <Row className="row-btn">
                     <Col xs={{ span: 10 }} lg={{ span: 15 }}>
-                        <Button className='mt-2 btn-back' onClick={() => { return navigate('/notes') }} >Back</Button>
+                        <Button className='mt-2 btn-back' onClick={() => { return navigate(routeConfig('notes')) }} >Back</Button>
                         <Button className='mt-2 btn-save' htmlType="submit" type="primary" >Save</Button>
                     </Col>
                     <Col xs={{ span: 14 }} lg={{ span: 9 }}>
