@@ -18,9 +18,15 @@ function getUsers() {
     }
 }
 
+/**
+ * Create new user, the first time to access
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @return token to access
+ */
 function createUser(req, res) {
     try {
-        console.log(req.body.username);
         const accessTokenLife =
             process.env.ACCESS_TOKEN_LIFE || jwtVariable.accessTokenLife;
         const accessTokenSecret =
@@ -66,6 +72,12 @@ function updateUser() {
     }
 }
 
+/**
+ * Get user id by token
+ * 
+ * @param {*} token 
+ * @returns user id
+ */
 function getUserId(token) {
     try {
         var sql = "SELECT u.id FROM user as u WHERE u.token=?";
@@ -80,7 +92,6 @@ function getUserId(token) {
                 resolve(result[0].id);
             });
         });
-
 
     } catch (error) {
         console.log(error.message);

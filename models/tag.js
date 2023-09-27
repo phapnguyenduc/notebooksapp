@@ -1,16 +1,29 @@
 const TABLE = "tag";
 const mysql = require('../db_connection');
 
-
+/**
+ * Get all of tags
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @return array of tags
+ */
 function getTags(req, res) {
     try {
         var sql = "SELECT * FROM tag";
         mysql.query(sql, function (err, result) {
             if (err) throw err;
-            res.send(result);
+
+            res.status(200).send({
+                data: result,
+                message: "Load tags successfully"
+            });
         });
     } catch (error) {
-        res.send(error.message);
+        res.status(500).send({
+            data: [],
+            message: error.message
+        });
     }
 }
 

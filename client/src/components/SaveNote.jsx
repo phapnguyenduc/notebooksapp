@@ -1,4 +1,6 @@
 import TextArea from "antd/es/input/TextArea";
+import Success from '../message/Success';
+import Error from '../message/Error';
 import { Button, Row, Col, Select, Space, Form } from 'antd';
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -14,6 +16,10 @@ const CreateNote = () => {
     const [content, setContent] = useState("");
     const [tagData, setTagData] = useState([]);
     const [tagSelect, setTagSelect] = useState([]);
+    const [successStatus, setSuccessStatus] = useState(false);
+    const [errorStatus, setErrorStatus] = useState(false);
+    const [message, setMessage] = useState('');
+    const [changeTagStatus, setChangeTagStatus] = useState(false);
 
     useEffect(() => {
         inputRef.current.focus({
@@ -22,7 +28,7 @@ const CreateNote = () => {
 
         if (!state === false) {
             setContent(state?.content);
-            setTagSelect(state?.tags ? state?.tags : []);
+            setTagSelect(state?.tags ? state?.tags?.map(t => t.tag_id) : []);
         }
 
         noteDataForm.setFieldsValue({
@@ -41,16 +47,24 @@ const CreateNote = () => {
                 headers: {
                     'x_authorization': localStorage.getItem("token")
                 }
-            }).then(res => {
-                const dataConverted = res.data.map((object) => {
+            })
+            .then(res => {
+                const dataConverted = res.data.data.map((object) => {
                     return {
                         label: "#" + object.name,
                         value: object.id
                     }
                 });
                 setTagData(dataConverted);
-                
-            }).catch(error => console.log(error));
+
+            })
+            .catch((error) => {
+                setMessage(error.message);
+                setErrorStatus(true);
+                setTimeout(() => {
+                    setErrorStatus(false);
+                }, 5000);
+            });
     }, []);
 
     const onSubmitForm = (e) => {
@@ -58,7 +72,7 @@ const CreateNote = () => {
             content: e.content,
             tags: tagSelect,
             id: state?.id,
-            user_id: localStorage.getItem('id')
+            changeTagStatus: changeTagStatus
         };
 
         axios.post(apiUrlConfig('private-note-save'), data,
@@ -69,15 +83,23 @@ const CreateNote = () => {
             }).then(res => {
                 window.location.replace(routeConfig('notes'));
             })
-            .catch(error => console.log(error));
+            .catch((error) => {
+                setMessage(error.message);
+                setErrorStatus(true);
+                setTimeout(() => {
+                    setErrorStatus(false);
+                }, 5000);
+            });
     };
 
     const handleChange = (value) => {
+        setChangeTagStatus(true);
         setTagSelect(value);
     };
 
     return (
         <>
+            {errorStatus && <Error data={{ message: message }} />}
             <Form
                 className="h-100"
                 form={noteDataForm}

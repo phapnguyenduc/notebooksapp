@@ -10,6 +10,12 @@ function getNotes() {
     }
 }
 
+/**
+ * List of notes and paginate follow infinite scroll
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
 function paginate(req, res) {
     try {
         var perPage = 15;
@@ -58,14 +64,26 @@ function paginate(req, res) {
                         ...object, tags: noteTagResult.filter(o => o.id === object.id).map(tag => tag.tags)[0]
                     }
                 });
-                res.send(result);
+                res.status(200).send({
+                    data: result,
+                    message: "Load notes successfully"
+                });
             });
         });
     } catch (error) {
-        res.send(error.message);
+        res.status(500).send({
+            data: [],
+            message: error.message
+        });
     }
 }
 
+/**
+ * Save new note and update note follow each user
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
 function saveNote(req, res) {
     try {
         // Create new note
@@ -102,63 +120,62 @@ function saveNote(req, res) {
         }
         if (Number.isInteger(req.body.id)) {
             // Update note
-            var sql = 'UPDATE note SET content=? WHERE id=?; ' +
-                'SELECT tag_id FROM note_tag WHERE note_id=?';
-            mysql.query(sql, [req.body.content, req.body.id, req.body.id], function (err, results) {
+            var sql = 'UPDATE note SET content=? WHERE id=?';
+
+            mysql.query(sql, [req.body.content, req.body.id], function (err, results) {
                 if (err) throw err;
 
-                if (req.body.tags.length !== 0) {
-                    var tagAdded = results[1].map((tag) => { return tag.tag_id });
-                    var tagReq = req.body.tags;
-                    var updateTag = {
-                        sql: '',
-                        tags: []
-                    };
-                    if (tagReq.length > tagAdded.length) {
-                        //update, add more tag
-                        var tags = tagReq.filter(o => { return !tagAdded.includes(o) });
-                        updateTag.sql = 'INSERT INTO note_tag (note_id, tag_id) VALUES ?';
-                        updateTag.tags = tags.map((ob) => {
-                            return [req.body.id, ob]
-                        });
+                var updateTag = {
+                    sql: 'DELETE FROM note_tag as nt WHERE nt.note_id=?; ',
+                    data: [req.body.id]
+                };
 
-                    } else {
-                        //update, remove tag
-                        var tags = tagAdded.filter(o => { return !tagReq.includes(o) });
-                        updateTag.sql = 'DELETE FROM note_tag WHERE (note_id, tag_id) IN (?)';
-                        updateTag.tags = tags.map((ob) => {
-                            return [req.body.id, ob]
-                        });
-                    }
-                    mysql.query(updateTag.sql, [updateTag.tags], function (err, result) {
+                if (req.body.tags.length !== 0) {
+                    updateTag.sql += 'INSERT INTO note_tag (note_id, tag_id) VALUES ?';
+                    updateTag.data.push(req.body.tags.map(tagId => { return [req.body.id, tagId] }));
+                }
+
+                if (req.body.changeTagStatus) {
+                    mysql.query(updateTag.sql, updateTag.data, function (err, result) {
                         if (err) throw err;
-                    })
+                    });
                 }
             });
         }
-        res.send("Save notes successfully");
+        res.status(200).send({
+            data: [],
+            message: "Save notes successfully"
+        });
     } catch (error) {
-        res.send(error.message);
+        res.status(500).send({
+            data: [],
+            message: error.message
+        });
     }
 }
 
+/**
+ * Delete note follow user
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
 function deleteNote(req, res) {
     try {
         var sql = "DELETE FROM note as n WHERE n.id=? ";
         mysql.query(sql, [req.params.id], function (err, result) {
             if (err) throw err;
-            res.send(result);
+
+            res.status(200).send({
+                data: result,
+                message: "Delete note successfully"
+            });
         });
     } catch (error) {
-        res.send(error.message);
-    }
-}
-
-function updateNote() {
-    try {
-
-    } catch (error) {
-        console.log(error.message);
+        res.status(500).send({
+            data: [],
+            message: error.message
+        });
     }
 }
 
@@ -166,6 +183,5 @@ module.exports = {
     getNotes,
     paginate,
     saveNote,
-    deleteNote,
-    updateNote
+    deleteNote
 }
